@@ -1,5 +1,4 @@
-#FROM hypriot/rpi-alpine-scratch 
-FROM resin/rpi-raspbian
+FROM hypriot/rpi-alpine-scratch 
 RUN apk update && \
     apk upgrade && \
     apk add --update bash vim dnsmasq && \
