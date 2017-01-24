@@ -1,0 +1,47 @@
+#!/bin/bash
+config_template="/etc/dnsmasq.conf.bk"
+config_file="/etc/dnsmasq.conf"
+dns_file="/home/dnsmasq/dns-server"
+host_file="/home/dnsmasq/static-hosts"
+
+ADD-DNS-SERVER() {
+  if [ -f $dns_file ]; then
+    for line in $(cat $dns_file) ; do
+      echo server=$line >> $config_file
+    done
+  else
+    echo "DNS server file not found!"
+  fi
+}
+
+ADD-STATIC-HOST() {
+  if [ -f $host_file ]; then
+    for line in $(cat $host_file) ; do
+      echo dhcp-host=$line >> $config_file
+    done
+  fi
+}
+
+SET-CONFIG() {
+  configlist=$1
+  for config in $(echo $configlist | tr ";" "\n")
+  do
+    echo $config >> /etc/dnsmasq.conf
+  done
+}
+
+INIT () {
+  # create dnsmasq config file from config template
+  sed "/local=/clocal=/"$DOMAIN"/" $config_template > $config_file
+  sed -i "/domain=/cdomain="$DOMAIN"" $config_file
+  sed -i "/dhcp-range=/cdhcp-range="$DHCP_RANGE","$DHCP_RELAY_TIME"" $config_file
+  ADD-DNS-SERVER
+  ADD-STATIC-HOST
+  SET-CONFIG $OTHERS
+  [ "$MY_DNS" != "" ] && echo "dhcp-option=6,$MY_DNS" >> $config_file
+  cat $config_file
+  echo "dnsmasq starting ..."
+  dnsmasq -k
+}
+
+INIT
