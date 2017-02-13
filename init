@@ -3,6 +3,7 @@ config_template="/etc/dnsmasq.conf.bk"
 config_file="/etc/dnsmasq.conf"
 dns_file="/home/dnsmasq/dns-server"
 host_file="/home/dnsmasq/static-hosts"
+white_list_file="/home/dnsmasq/accelerated-domains.china.conf"
 
 ADD-DNS-SERVER() {
   if [ -f $dns_file ]; then
@@ -23,25 +24,35 @@ ADD-STATIC-HOST() {
 }
 
 SET-CONFIG() {
-  configlist=$1
-  for config in $(echo $configlist | tr ";" "\n")
+  # create dnsmasq config file from config template 
+  sed "/local=/clocal=/"$DOMAIN"/" $config_template > $config_file
+  sed -i "/domain=/cdomain="$DOMAIN"" $config_file
+  sed -i "/dhcp-range=/cdhcp-range="$DHCP_RANGE","$DHCP_RELAY_TIME"" $config_file
+  [ "$MY_DNS" != "" ] && echo "dhcp-option=6,$MY_DNS" >> $config_file
+
+  ADD-DNS-SERVER
+  ADD-STATIC-HOST
+
+  for config in $OTHERS
   do
     echo $config >> /etc/dnsmasq.conf
   done
 }
 
+START() {
+  if [ -f $white_list_file ]; then
+    echo "start with accelerated-domains"
+    dnsmasq -k --servers-file=$white_list_file
+  else
+    echo "accelerated-domains not found!"
+    dnsmasq -k
+  fi
+}
 INIT () {
-  # create dnsmasq config file from config template
-  sed "/local=/clocal=/"$DOMAIN"/" $config_template > $config_file
-  sed -i "/domain=/cdomain="$DOMAIN"" $config_file
-  sed -i "/dhcp-range=/cdhcp-range="$DHCP_RANGE","$DHCP_RELAY_TIME"" $config_file
-  ADD-DNS-SERVER
-  ADD-STATIC-HOST
-  SET-CONFIG $OTHERS
-  [ "$MY_DNS" != "" ] && echo "dhcp-option=6,$MY_DNS" >> $config_file
+  SET-CONFIG
   cat $config_file
   echo "dnsmasq starting ..."
-  dnsmasq -k
+  START
 }
 
 INIT
