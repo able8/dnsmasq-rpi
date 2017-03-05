@@ -5,7 +5,7 @@ Docker raspberrypi (arm7) image of dnsmasq,
 * Fetch the code
 
 ```
-git clone git@github.com:dorrywhale/dnsmasq-rpi.git
+git clone git@github.com:LaoLuMian/dnsmasq-rpi.git 
 ```
 
 * Modify the configuration
