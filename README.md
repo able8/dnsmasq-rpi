@@ -21,6 +21,16 @@ then change the configuration in `dnsmasq_conf/dnsmasq` and `dnsmasq_conf/dnsmas
 * Running
 
 ```
-./dns_start.sh
+./dns-control start
 ```
 
+* Stop
+```
+./dns-control stop
+```
+
+
+* Restart
+```
+./dns-control restart
+```
